@@ -13,7 +13,7 @@ int main(void)
 {
     printf("va_c_arena - Arena Memory Management Example\n\n");
 
-    // Create an arena with a size of 32 MB
+    // Create an arena with a size of 16 MB
     Arena *arena = arena_create(ARENA_SIZE);
     if (!arena)
     {
