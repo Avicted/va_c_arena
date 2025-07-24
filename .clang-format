@@ -1,0 +1,9 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+AllowShortAttributesOnASingleLine: true
+BreakBeforeBraces: Allman
+ColumnLimit: 120
+AttributeMacros:
+  - VA_ALIGNAS
