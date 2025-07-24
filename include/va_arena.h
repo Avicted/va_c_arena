@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 //    va_arena.h - stb-style C99/C11 arena allocator
 //
@@ -58,6 +59,9 @@ extern "C"
 
     // Allocates memory from the arena
     void *arena_alloc(Arena *arena, size_t size);
+
+    // Allocates memory from the arena with specified alignment
+    void *arena_alloc_aligned(Arena *arena, size_t size, size_t alignment);
 
     // Resets the arena, freeing all allocated memory
     int arena_reset(Arena *arena);

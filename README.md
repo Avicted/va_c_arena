@@ -3,7 +3,7 @@
 va_c_arena is a C99/C11 arena memory management library designed to provide efficient memory allocation and deallocation. This library is structured as a single-header, stb-style implementation for easy integration and cross-platform use.
 
 > **Note:**  
-> - The core arena allocator is fully C99-compliant.  
+> - The core arena allocator is fully C99-compliant.
 > - **Aligned allocation (`arena_alloc_aligned`) and the provided tests/examples require C11 or newer** for features like `_Alignas`, `_Alignof`, and their macros (`VA_ALIGNAS`, `VA_ALIGNOF`).  
 > - Compilation with `-std=c99` will fail if you use aligned allocation or the aligned examples/tests.  
 > - Compilation with `-std=c11`, `-std=c17`, or `-std=c23` is fully supported.

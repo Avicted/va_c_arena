@@ -1,4 +1,3 @@
-#include <stdalign.h>
 #include <stdio.h>
 
 #define VA_ARENA_IMPLEMENTATION

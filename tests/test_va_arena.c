@@ -1,6 +1,5 @@
 #include <stdalign.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #define VA_ARENA_IMPLEMENTATION
 #include "va_arena.h"
