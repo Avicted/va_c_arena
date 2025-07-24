@@ -131,7 +131,7 @@ int test_arena_reset(void)
         arena_destroy(&arena);
         return -1;
     }
-    else if (arena_used(arena) != 0)
+    else if (arena_used_size(arena) != 0)
     {
         printf("test_arena_reset\t\t\tfailed\n");
         arena_destroy(&arena);
@@ -161,7 +161,7 @@ int test_arena_used_and_total_size(void)
         return -1;
     }
     arena_alloc(arena, 128);
-    if (arena_used(arena) != 128)
+    if (arena_used_size(arena) != 128)
     {
         printf("test_arena_used_and_total_size\t\tfailed\n");
         arena_destroy(&arena);

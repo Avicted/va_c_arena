@@ -8,6 +8,9 @@
 
 //    va_arena.h - stb-style C99/C11 arena allocator
 //
+//    Version: 0.1.0
+//
+//
 //    Alignment Guarantees:
 //    - Memory returned by arena_alloc() is aligned at least to alignof(max_align_t)
 //      if the arena itself is allocated by malloc.
@@ -67,7 +70,7 @@ extern "C"
     int arena_reset(Arena *arena);
 
     // Returns the amount of memory currently used in the arena
-    size_t arena_used(Arena *arena);
+    size_t arena_used_size(Arena *arena);
 
     // Returns the total size of the arena
     size_t arena_total_size(Arena *arena);
@@ -165,11 +168,18 @@ int arena_reset(Arena *arena)
         return -1;
     }
 
+    free(arena->memory);
+    arena->memory = (uint8_t *)malloc(arena->size);
+    if (!arena->memory)
+    {
+        return -1;
+    }
+
     arena->used = 0;
     return 0;
 }
 
-size_t arena_used(Arena *arena)
+size_t arena_used_size(Arena *arena)
 {
     if (!arena)
     {
