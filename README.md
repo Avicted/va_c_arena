@@ -30,6 +30,7 @@ va_c_arena is a C99/C11 arena memory management library designed to provide effi
 ```c
 #include <stdio.h>
 #include <stdalign.h>
+
 #define VA_ARENA_IMPLEMENTATION
 #include "va_arena.h"
 
