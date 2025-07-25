@@ -163,14 +163,7 @@ void *arena_alloc_aligned(Arena *arena, size_t size, size_t alignment)
 
 int arena_reset(Arena *arena)
 {
-    if (!arena)
-    {
-        return -1;
-    }
-
-    free(arena->memory);
-    arena->memory = (uint8_t *)malloc(arena->size);
-    if (!arena->memory)
+    if (!arena || !arena->memory)
     {
         return -1;
     }
