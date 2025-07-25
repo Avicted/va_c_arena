@@ -206,6 +206,76 @@ int test_arena_alignment(void)
     }
 }
 
+int test_arena_expand(void)
+{
+    Arena *arena = arena_create(128);
+    if (!arena)
+    {
+        printf("test_arena_expand_happy\t\t\tfailed (arena_create)\n");
+        return -1;
+    }
+
+    void *ptr1 = arena_alloc(arena, 64);
+    if (!ptr1)
+    {
+        printf("test_arena_expand_happy\t\t\tfailed (arena_alloc)\n");
+        arena_destroy(&arena);
+        return -1;
+    }
+
+    void *expand_ptr = arena_expand(arena, 256);
+    if (!expand_ptr || arena_total_size(arena) != 256)
+    {
+        printf("test_arena_expand_happy\t\t\tfailed (arena_expand)\n");
+        arena_destroy(&arena);
+        return -1;
+    }
+
+    // Should still be able to allocate more after expand
+    void *ptr2 = arena_alloc(arena, 128);
+    if (!ptr2)
+    {
+        printf("test_arena_expand_happy\t\t\tfailed (post-expand alloc)\n");
+        arena_destroy(&arena);
+        return -1;
+    }
+
+    printf("test_arena_expand_happy\t\t\tpassed\n");
+    arena_destroy(&arena);
+    return 0;
+}
+
+int test_arena_expand_fail(void)
+{
+    Arena *arena = arena_create(128);
+    if (!arena)
+    {
+        printf("test_arena_expand_fail\t\t\tfailed (arena_create)\n");
+        return -1;
+    }
+
+    // Try to shrink (should fail)
+    void *expand_ptr = arena_expand(arena, 64);
+    if (expand_ptr != NULL)
+    {
+        printf("test_arena_expand_fail\t\t\tfailed (shrink allowed)\n");
+        arena_destroy(&arena);
+        return -1;
+    }
+
+    // Try to expand with NULL arena (should fail)
+    if (arena_expand(NULL, 256) != NULL)
+    {
+        printf("test_arena_expand_fail\t\t\tfailed (NULL arena allowed)\n");
+        arena_destroy(&arena);
+        return -1;
+    }
+
+    printf("test_arena_expand_fail\t\t\tpassed\n");
+    arena_destroy(&arena);
+    return 0;
+}
+
 int main(void)
 {
     printf("va_c_arena - Arena Memory Management Tests\n\n");
@@ -221,7 +291,9 @@ int main(void)
                             test_arena_destroy,
                             test_arena_reset,
                             test_arena_used_and_total_size,
-                            test_arena_alignment};
+                            test_arena_alignment,
+                            test_arena_expand,
+                            test_arena_expand_fail};
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); i++)
     {
@@ -236,5 +308,6 @@ int main(void)
     }
 
     printf("\nTests completed: %zu passed, %zu failed.\n", success_count, error_count);
+
     return 0;
 }

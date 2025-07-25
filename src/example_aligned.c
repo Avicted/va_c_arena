@@ -69,7 +69,6 @@ int main(void)
         printf("\n%d entities were not properly aligned!\n\n", alignment_errors);
     }
 
-    // Assert that the arena was created and memory was allocated successfully
     printf("Arena created and memory allocated successfully.\n");
     printf("Total arena size:\t\t%zu bytes\n", arena_total_size(arena));
     printf("Memory used in arena:\t\t%zu bytes\n", arena_used_size(arena));
@@ -77,7 +76,6 @@ int main(void)
 
     arena_destroy(&arena);
 
-    // Assert that the arena was destroyed successfully
     if (arena_used_size(arena) != 0)
     {
         fprintf(stderr, "Arena was not destroyed properly, memory still used.\n");

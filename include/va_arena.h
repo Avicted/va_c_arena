@@ -8,7 +8,7 @@
 
 //    va_arena.h - stb-style C99/C11 arena allocator
 //
-//    Version: 0.1.0
+//    Version: 0.2.0
 //
 //
 //    Alignment Guarantees:
@@ -35,7 +35,7 @@
 #endif
 
 // C11/C17: _Alignas
-// C23:     alignas
+// C23:      alignas
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
 #define VA_ALIGNAS(x) alignas(x)
 #else
@@ -65,6 +65,11 @@ extern "C"
 
     // Allocates memory from the arena with specified alignment
     void *arena_alloc_aligned(Arena *arena, size_t size, size_t alignment);
+
+    // Increases the arena size to accommodate more memory.
+    // WARNING: All pointers previously returned by arena_alloc/arena_alloc_aligned may become invalid!
+    // Returns a pointer to the current position in the new memory block, or NULL on failure.
+    void *arena_expand(Arena *arena, size_t new_size);
 
     // Resets the arena, freeing all allocated memory
     int arena_reset(Arena *arena);
@@ -104,6 +109,7 @@ Arena *arena_create(size_t size)
 
     arena->size = size;
     arena->used = 0;
+
     return arena;
 }
 
@@ -121,13 +127,11 @@ void arena_destroy(Arena **arena)
 
 void *arena_alloc(Arena *arena, size_t size)
 {
-    assert(arena && "arena_alloc: arena is NULL");
-    assert(size > 0 && "arena_alloc: size must be > 0");
-
     if (!arena || size == 0)
     {
         return NULL;
     }
+
     if (arena->used + size > arena->size)
     {
         return NULL;
@@ -135,6 +139,7 @@ void *arena_alloc(Arena *arena, size_t size)
 
     void *ptr = arena->memory + arena->used;
     arena->used += size;
+
     return ptr;
 }
 
@@ -158,7 +163,27 @@ void *arena_alloc_aligned(Arena *arena, size_t size, size_t alignment)
 
     void *ptr = arena->memory + offset;
     arena->used = offset + size;
+
     return ptr;
+}
+
+void *arena_expand(Arena *arena, size_t new_size)
+{
+    if (!arena || new_size <= arena->size)
+    {
+        return NULL;
+    }
+
+    uint8_t *new_memory = (uint8_t *)realloc(arena->memory, new_size);
+    if (!new_memory)
+    {
+        return NULL; // Reallocation failed
+    }
+
+    arena->memory = new_memory;
+    arena->size = new_size;
+
+    return arena->memory + arena->used;
 }
 
 int arena_reset(Arena *arena)
@@ -169,6 +194,7 @@ int arena_reset(Arena *arena)
     }
 
     arena->used = 0;
+
     return 0;
 }
 

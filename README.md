@@ -11,16 +11,18 @@ va_c_arena is a C99/C11 arena memory management library designed to provide effi
 ## Features
 
 - **Arena Memory Management**: Efficiently allocate and manage memory in blocks.
-- **Single-Header (stb-style)**: Just include one header and add `#define VA_ARENA_IMPLEMENTATION` in one source file.
+- **Single-Header (stb-style)**: Just include one header `include/va_arena.h` and add `#define VA_ARENA_IMPLEMENTATION` in one source file.
 - **Cross-Platform**: Works on various operating systems without modification.
+- **Portable:** Uses only standard C (`malloc`, `realloc`, `free`); no platform-specific APIs like `mmap` or `VirtualAlloc`.
 - **Easy to Use API**: Simple functions for memory management that are easy to integrate into your projects.
 - **Unit Tested**: Includes tests for all API functions.
 - **Aligned Allocations**: Supports aligned allocations for types with strict alignment requirements (C11 or newer required).
+- **Expandable Arena**: Optionally grow the arena at runtime with `arena_expand`.
 
 ## Requirements
 
-- **C99 compiler** for the core arena allocator.
-- **C11 or newer compiler** for aligned allocations and tests/examples using `VA_ALIGNAS`/`VA_ALIGNOF`.
+- **C99 compiler** for the core arena functionality.
+- **C11 or newer compiler** only for aligned allocations and tests/examples using `VA_ALIGNAS`/`VA_ALIGNOF`.
 - Standard C library.
 
 ## Example (Aligned Allocation, C11+)
@@ -56,6 +58,20 @@ int main(void) {
 - **Alignment:** `arena_alloc` returns memory aligned at least to `alignof(max_align_t)` (C11+) or `_Alignof(max_align_t)` (C11/C17). For stricter alignment, use `arena_alloc_aligned` (requires C11 or newer).
 - **Thread Safety:** This arena implementation is **not thread-safe**. If you need to use an arena from multiple threads, you must provide your own synchronization.
 
+
+## Arena Expansion and Pointer Invalidation
+
+If you use `arena_expand` to grow the arena, **all pointers previously returned by `arena_alloc` or `arena_alloc_aligned` may become invalid**. This is because the underlying memory block may be moved by `realloc`.  
+**After calling `arena_expand`, you must not use any pointers previously obtained from the arena.**
+
+Example:
+```c
+void *ptr = arena_alloc(arena, 128);
+// ... use ptr ...
+arena_expand(arena, 4096);
+// DO NOT use ptr here! It may point to invalid memory.
+```
+
 ## Building
 
 A sample `build.sh` is provided. To build all examples and tests:
@@ -85,6 +101,8 @@ To check all executables for memory leaks with Valgrind:
 ```sh
 ./build.sh valgrind
 ```
+
+--- 
 
 ## License
 

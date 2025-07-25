@@ -5,7 +5,7 @@
 [ -d ./build ] && rm -rf ./build
 mkdir -p ./build
 
-CC=clang
+CC=${CC:-clang}
 
 # Note: Using C11 standard for compatibility with the tests that use `alignof`.
 CFLAGS="-std=c11 -ggdb -O0 -Wall -Wextra -Werror -Wpedantic"
@@ -44,18 +44,26 @@ elif [[ "$1" == "test-stds" ]]; then
             ./build/example_aligned
             echo "Build and run successful for -std=$std"
         else
-            echo "ERROR: Build failed for -std=$std"
+            if [[ "$std" == "c99" ]]; then
+                echo "WARNING: Build failed for -std=$std (expected behavior)"
+            else
+                echo "ERROR: Build failed for -std=$std"
+            fi
         fi
         echo "--------------------------------------------"
         echo
     done
     exit 0
+elif [[ "$1" == "clean" ]]; then
+    rm -rf ./build
+    echo "Build directory cleaned."
+    exit 0
 else
-    echo "Build complete. Run with:"
+    echo "Available parameters:"
+    echo ""
     echo "  ./build.sh example        # Run example"
     echo "  ./build.sh aligned        # Run example_aligned"
     echo "  ./build.sh tests          # Run tests"
     echo "  ./build.sh valgrind       # Run Valgrind to check for memory leaks"
     echo "  ./build.sh test-stds      # Test with different C standards (c99, c11, c17, c23)"
 fi
-
