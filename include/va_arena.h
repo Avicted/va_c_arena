@@ -26,6 +26,7 @@
 //    - If you need to use an arena from multiple threads, you must provide your own synchronization.
 
 // Standard Alignment Macros:
+// VA_ALIGNOF: Determines the alignment requirement of a type.
 // C11/C17: _Alignof
 // C23:     alignof
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
@@ -34,6 +35,7 @@
 #define VA_ALIGNOF(type) _Alignof(type)
 #endif
 
+// VA_ALIGNAS: Specifies the alignment requirement for a variable or type.
 // C11/C17: _Alignas
 // C23:      alignas
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
