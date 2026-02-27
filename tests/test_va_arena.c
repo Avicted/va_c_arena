@@ -65,11 +65,11 @@ int test_arena_alloc_aligned(void)
         arena_destroy(&arena);
         return -1;
     }
-    else if (((uintptr_t)ptr) % VA_ALIGNOF(double) != 0)
+    else if (((uintptr_t)ptr) % VA_ALIGNOF(long double) != 0)
     {
         printf("test_arena_alloc_aligned\t\tfailed\n");
-        return -1;
         arena_destroy(&arena);
+        return -1;
     }
     else
     {
@@ -185,14 +185,23 @@ int test_arena_alignment(void)
         return -1;
     }
 
-    void *ptr = arena_alloc(arena, sizeof(double));
-    if (!ptr)
+    void *ptr1 = arena_alloc(arena, 1);
+    if (!ptr1)
     {
         printf("test_arena_alignment\t\t\tfailed\n");
         arena_destroy(&arena);
         return -1;
     }
-    if (((uintptr_t)ptr) % VA_ALIGNOF(double) != 0)
+
+    void *ptr2 = arena_alloc(arena, sizeof(double));
+    if (!ptr2)
+    {
+        printf("test_arena_alignment\t\t\tfailed\n");
+        arena_destroy(&arena);
+        return -1;
+    }
+
+    if (((uintptr_t)ptr2) % VA_ALIGNOF(double) != 0)
     {
         printf("test_arena_alignment\t\t\tfailed\n");
         arena_destroy(&arena);
@@ -204,6 +213,27 @@ int test_arena_alignment(void)
         arena_destroy(&arena);
         return 0;
     }
+}
+
+int test_arena_alloc_aligned_invalid_alignment(void)
+{
+    Arena *arena = arena_create(1024);
+    if (!arena)
+    {
+        printf("test_arena_aligned_invalid_align\tfailed\n");
+        return -1;
+    }
+
+    if (arena_alloc_aligned(arena, 64, 3) != NULL)
+    {
+        printf("test_arena_aligned_invalid_align\tfailed\n");
+        arena_destroy(&arena);
+        return -1;
+    }
+
+    printf("test_arena_aligned_invalid_align\tpassed\n");
+    arena_destroy(&arena);
+    return 0;
 }
 
 int test_arena_expand(void)
@@ -288,6 +318,7 @@ int main(void)
                             test_arena_alloc_exceed,
                             test_arena_alloc_aligned,
                             test_arena_alloc_aligned_exceed,
+                            test_arena_alloc_aligned_invalid_alignment,
                             test_arena_destroy,
                             test_arena_reset,
                             test_arena_used_and_total_size,

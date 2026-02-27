@@ -94,8 +94,34 @@ extern "C"
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#define VA_DEFAULT_ALIGNMENT VA_ALIGNOF(max_align_t)
+#else
+#define VA_DEFAULT_ALIGNMENT sizeof(void *)
+#endif
+
+static size_t align_up(size_t n, size_t align);
+
+static int va_add_overflow_size(size_t a, size_t b, size_t *out)
+{
+    if (a > SIZE_MAX - b)
+    {
+        return 1;
+    }
+
+    *out = a + b;
+    return 0;
+}
+
+static int va_is_power_of_two(size_t value) { return value != 0 && (value & (value - 1)) == 0; }
+
 Arena *arena_create(size_t size)
 {
+    if (size == 0)
+    {
+        return NULL;
+    }
+
     Arena *arena = (Arena *)malloc(sizeof(Arena));
     if (!arena)
     {
@@ -134,37 +160,52 @@ void *arena_alloc(Arena *arena, size_t size)
         return NULL;
     }
 
-    if (arena->used + size > arena->size)
+    size_t aligned_used = align_up(arena->used, VA_DEFAULT_ALIGNMENT);
+    size_t end_offset = 0;
+
+    if (va_add_overflow_size(aligned_used, size, &end_offset) || end_offset > arena->size)
     {
         return NULL;
     }
 
-    void *ptr = arena->memory + arena->used;
-    arena->used += size;
+    void *ptr = arena->memory + aligned_used;
+    arena->used = end_offset;
 
     return ptr;
 }
 
-size_t align_up(size_t n, size_t align)
+static size_t align_up(size_t n, size_t align)
 {
     // Assumes alignment is a power of two.
     // The & ~(align - 1) operation rounds n up to the nearest multiple of align.
-    return (n + align - 1) & ~(align - 1);
+    size_t addend = align - 1;
+    size_t rounded = 0;
+
+    if (va_add_overflow_size(n, addend, &rounded))
+    {
+        return SIZE_MAX;
+    }
+
+    return rounded & ~(align - 1);
 }
 
 void *arena_alloc_aligned(Arena *arena, size_t size, size_t alignment)
 {
-    size_t current = (size_t)(arena->memory + arena->used);
-    size_t aligned = align_up(current, alignment);
-    size_t offset = aligned - (size_t)arena->memory;
-
-    if (offset + size > arena->size)
+    if (!arena || size == 0 || !va_is_power_of_two(alignment))
     {
         return NULL;
     }
 
-    void *ptr = arena->memory + offset;
-    arena->used = offset + size;
+    size_t aligned_used = align_up(arena->used, alignment);
+    size_t end_offset = 0;
+
+    if (va_add_overflow_size(aligned_used, size, &end_offset) || end_offset > arena->size)
+    {
+        return NULL;
+    }
+
+    void *ptr = arena->memory + aligned_used;
+    arena->used = end_offset;
 
     return ptr;
 }
