@@ -8,7 +8,7 @@ RED     := \033[31m
 CYAN    := \033[36m
 NC      := \033[0m
 
-.PHONY: all help example aligned tests valgrind test-stds clean
+.PHONY: all help example aligned test valgrind test-stds clean
 
 all: $(BUILD)/Makefile
 	cmake --build $(BUILD)
@@ -26,7 +26,7 @@ help: ## Show this help
 	@printf '$(BOLD)Run targets:$(NC)\n'
 	@echo '  example      Build and run the basic example'
 	@echo '  aligned      Build and run the aligned allocation example'
-	@echo '  tests        Build and run the unit tests'
+	@echo '  test         Build and run the unit tests'
 	@echo
 	@printf '$(BOLD)Check targets:$(NC)\n'
 	@echo '  valgrind     Run Valgrind leak check on all executables'
@@ -62,7 +62,11 @@ test-stds: ## Build example_aligned under c99, c11, c17, c23
 	@mkdir -p $(BUILD)
 	@for std in c99 c11 c17 c23; do \
 		printf '$(BOLD)Testing with -std=%s$(NC)\n' "$$std"; \
-		$(CC) -std=$$std -ggdb -O0 -Wall -Wextra -Werror -Wpedantic \
+		stdflag="$$std"; \
+		if [ "$$std" = "c23" ]; then \
+			$(CC) -std=c23 -x c /dev/null -o /dev/null 2>/dev/null || stdflag="c2x"; \
+		fi; \
+		$(CC) -std=$$stdflag -ggdb -O0 -Wall -Wextra -Werror -Wpedantic \
 			-I./include ./src/example_aligned.c -o $(BUILD)/example_aligned -lm; \
 		if [ $$? -eq 0 ]; then \
 			./$(BUILD)/example_aligned; \

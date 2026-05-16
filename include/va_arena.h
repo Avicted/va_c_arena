@@ -219,15 +219,29 @@ arena_alloc_aligned(Arena *arena, size_t size, size_t alignment)
 		return NULL;
 	}
 
-	size_t aligned_used = align_up(arena->used, alignment);
-	size_t end_offset = 0;
+	uintptr_t base = (uintptr_t)arena->memory;
+	size_t offset   = arena->used;
 
-	if (va_add_overflow_size(aligned_used, size, &end_offset) || end_offset > arena->size)
+	// Pad offset so that (base + offset) is aligned to 'alignment'.
+	// align_up alone is insufficient when arena->memory (from malloc)
+	// is not itself aligned to the requested alignment.
+	size_t misalign = (size_t)((base + offset) & (alignment - 1));
+	if (misalign != 0)
+	{
+		size_t pad = alignment - misalign;
+		if (va_add_overflow_size(offset, pad, &offset))
+		{
+			return NULL;
+		}
+	}
+
+	size_t end_offset = 0;
+	if (va_add_overflow_size(offset, size, &end_offset) || end_offset > arena->size)
 	{
 		return NULL;
 	}
 
-	void *ptr = arena->memory + aligned_used;
+	void *ptr = arena->memory + offset;
 	arena->used = end_offset;
 
 	return ptr;

@@ -84,6 +84,33 @@ test_arena_alloc_aligned(void)
 }
 
 int
+test_arena_alloc_aligned_large(void)
+{
+	// Verify alignment larger than alignof(max_align_t),
+	// which exposes bugs where base-address misalignment is ignored.
+	Arena *arena = arena_create(2048);
+	void *ptr = arena_alloc_aligned(arena, 1024, 32);
+	if (ptr == NULL)
+	{
+		printf("test_arena_alloc_aligned_large\t\tfailed (NULL ptr)\n");
+		arena_destroy(&arena);
+		return -1;
+	}
+	else if (((uintptr_t)ptr) % 32 != 0)
+	{
+		printf("test_arena_alloc_aligned_large\t\tfailed (misaligned)\n");
+		arena_destroy(&arena);
+		return -1;
+	}
+	else
+	{
+		printf("test_arena_alloc_aligned_large\t\tpassed\n");
+		arena_destroy(&arena);
+		return 0;
+	}
+}
+
+int
 test_arena_alloc_aligned_exceed(void)
 {
 	Arena *arena = arena_create(1024);
@@ -330,6 +357,7 @@ main(void)
 							test_arena_alloc,
 							test_arena_alloc_exceed,
 							test_arena_alloc_aligned,
+							test_arena_alloc_aligned_large,
 							test_arena_alloc_aligned_exceed,
 							test_arena_alloc_aligned_invalid_alignment,
 							test_arena_destroy,

@@ -1,0 +1,19 @@
+{
+    "name": "va_c_arena",
+    "image": "mcr.microsoft.com/devcontainers/cpp:ubuntu-22.04",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "llvm-vs-code-extensions.vscode-clangd",
+                "vadimcn.vscode-lldb",
+                "ms-vscode.cpptools-extension-pack"
+            ],
+            "settings": {
+                "clangd.arguments": [
+                    "--compile-commands-dir=${workspaceFolder}/build",
+                    "--header-insertion=never"
+                ]
+            }
+        }
+    }
+}
