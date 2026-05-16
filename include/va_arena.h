@@ -8,7 +8,7 @@
 
 //    va_arena.h - stb-style C99/C11 arena allocator
 //
-//    Version: 0.2.0
+//    Version: 0.3.0
 //
 //
 //    Alignment Guarantees:
@@ -220,7 +220,7 @@ arena_alloc_aligned(Arena *arena, size_t size, size_t alignment)
 	}
 
 	uintptr_t base = (uintptr_t)arena->memory;
-	size_t offset   = arena->used;
+	size_t offset = arena->used;
 
 	// Pad offset so that (base + offset) is aligned to 'alignment'.
 	// align_up alone is insufficient when arena->memory (from malloc)
