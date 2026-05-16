@@ -30,18 +30,20 @@
 // VA_ALIGNOF: Determines the alignment requirement of a type.
 // C11/C17: _Alignof
 // C23:     alignof
+// C99:     not defined (requires C11 or newer)
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
 #define VA_ALIGNOF(type) alignof(type)
-#else
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 #define VA_ALIGNOF(type) _Alignof(type)
 #endif
 
 // VA_ALIGNAS: Specifies the alignment requirement for a variable or type.
 // C11/C17: _Alignas
 // C23:      alignas
+// C99:     not defined (requires C11 or newer)
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
 #define VA_ALIGNAS(x) alignas(x)
-#else
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 #define VA_ALIGNAS(x) _Alignas(x)
 #endif
 

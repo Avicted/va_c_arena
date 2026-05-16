@@ -75,32 +75,42 @@ arena_expand(arena, 4096);
 
 ## Building
 
-A sample `build.sh` is provided. To build all examples and tests:
+Build with `make` (requires CMake 3.16+):
 
 ```sh
-./build.sh
+make          # Build all examples and tests
 ```
 
-To test with different C standards (and verify alignment macro support):
+Or use CMake directly for IDE integration:
 
 ```sh
-./build.sh test-stds
+cmake -B build -S .
+cmake --build build
 ```
 
-To run an example or test:
+A `compile_commands.json` is generated inside `build/` for clangd/LSP support.
+
+### Run targets
 
 ```sh
-./build.sh example         # Run the basic example
-./build.sh aligned         # Run the aligned allocation example
-./build.sh tests           # Run the unit tests
+make example    # Run the basic example
+make aligned    # Run the aligned allocation example
+make tests      # Run the unit tests
 ```
 
-## Running Valgrind
-
-To check all executables for memory leaks with Valgrind:
+### Check targets
 
 ```sh
-./build.sh valgrind
+make valgrind   # Valgrind leak check on all executables
+make test-stds  # Build example_aligned under c99, c11, c17, c23
+```
+
+### Other
+
+```sh
+make clean      # Remove build directory
+make help       # Show all available targets
+CC=clang make   # Build with a specific C compiler (default: clang)
 ```
 
 --- 

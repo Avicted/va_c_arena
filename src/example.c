@@ -21,7 +21,7 @@ main(void)
 		return 1;
 	}
 
-	void *ptr1 = arena_alloc(arena, (ARENA_SIZE / 2.0));
+	void *ptr1 = arena_alloc(arena, (ARENA_SIZE / 2));
 	if (!ptr1)
 	{
 		fprintf(stderr, "Failed to allocate memory from arena\n");
@@ -32,7 +32,7 @@ main(void)
 	snprintf((char *)ptr1, 256, "Hello from arena memory!");
 	printf("%s\n", (char *)ptr1);
 
-	void *ptr2 = arena_alloc(arena, (ARENA_SIZE / 2.0));
+	void *ptr2 = arena_alloc(arena, (ARENA_SIZE / 2));
 	if (!ptr2)
 	{
 		fprintf(stderr, "Failed to allocate memory from arena\n");
