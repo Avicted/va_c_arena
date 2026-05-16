@@ -95,7 +95,7 @@ A `compile_commands.json` is generated inside `build/` for clangd/LSP support.
 ```sh
 make example    # Run the basic example
 make aligned    # Run the aligned allocation example
-make tests      # Run the unit tests
+make test       # Run the unit tests
 ```
 
 ### Check targets
