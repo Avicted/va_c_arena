@@ -1,9 +1,17 @@
 BasedOnStyle: LLVM
+UseTab: Always
 IndentWidth: 4
 TabWidth: 4
-UseTab: Never
-AllowShortAttributesOnASingleLine: true
+ContinuationIndentWidth: 4
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: Never
+PointerAlignment: Right
+ColumnLimit: 180
+SortIncludes: false
+AlignConsecutiveMacros: true
+SpaceBeforeParens: ControlStatements
+AlwaysBreakAfterReturnType: All
+InsertBraces: true
 BreakBeforeBraces: Allman
-ColumnLimit: 120
-AttributeMacros:
-  - VA_ALIGNAS
