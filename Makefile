@@ -1,15 +1,32 @@
 CC      ?= clang
 BUILD   := build
 
-BOLD    := \033[1m
-GREEN   := \033[32m
-YELLOW  := \033[33m
-RED     := \033[31m
-CYAN    := \033[36m
-NC      := \033[0m
 
-.PHONY: all help example aligned test valgrind test-stds asan clean
+# Colors
+BOLD   := \033[1m
+RESET  := \033[0m
+GREEN  := \033[32m
+RED    := \033[31m
+CYAN   := \033[36m
+YELLOW := \033[33m
 
+
+.DEFAULT_GOAL := help
+
+## help: Show available commands
+.PHONY: help
+help:
+	@printf "\n$(BOLD)Available commands:$(RESET)\n"
+	@for cat in Build Run Check; do \
+		printf "\n$(YELLOW)$(BOLD)%s$(RESET)\n" "$$cat"; \
+		grep -E "^## [^@:]+@$$cat: " Makefile | \
+			sed -E 's/^## ([^@:]+)@[^:]+:[[:space:]]*(.*)/\1\t\2/' | \
+			awk -F'\t' '{printf "  $(CYAN)%-18s$(RESET) %s\n", $$1, $$2}'; \
+	done
+	@printf "\n"
+
+## all@Build: build all examples and tests
+.PHONY: all
 all: $(BUILD)/Makefile
 	cmake --build $(BUILD)
 	ln -sf $(BUILD)/compile_commands.json compile_commands.json
@@ -17,52 +34,50 @@ all: $(BUILD)/Makefile
 $(BUILD)/Makefile:
 	cmake -B $(BUILD) -S . -DCMAKE_C_COMPILER=$(CC)
 
-help: ## Show this help
-	@printf '$(BOLD)Usage:$(NC) make [target]\n'
-	@echo
-	@printf '$(BOLD)Build targets:$(NC)\n'
-	@echo '  all          Build all examples and tests'
-	@echo
-	@printf '$(BOLD)Run targets:$(NC)\n'
-	@echo '  example      Build and run the basic example'
-	@echo '  aligned      Build and run the aligned allocation example'
-	@echo '  test         Build and run the unit tests'
-	@echo
-	@printf '$(BOLD)Check targets:$(NC)\n'
-	@echo '  valgrind     Run Valgrind leak check on all executables'
-	@echo '  test-stds    Build example_aligned under c99, c11, c17, c23'
-	@echo '  asan         Unit tests under AddressSanitizer + UBSan'
-	@echo
-	@printf '$(BOLD)Utility targets:$(NC)\n'
-	@echo '  clean        Remove build directory and compile_commands.json'
-	@echo '  help         Show this help'
-	@echo
-	@printf '$(BOLD)Variables:$(NC)\n'
-	@echo '  CC           C compiler (default: clang)'
+## format@Build: clang-format all project files
+.PHONY: format
+format:
+	@find include src tests \( -name "*.c" -o -name "*.h" \) -print0 | xargs -0 -P "$$(nproc)" -n 8 clang-format -i --style=file
 
-example: all ## Build and run the basic example
+## clean@Build: remove the build directory and compile_commands.json
+.PHONY: clean
+clean:
+	rm -rf $(BUILD)
+	rm -f compile_commands.json
+
+## example@Run: build and run the basic example
+.PHONY: example
+example: all
 	./$(BUILD)/example
 
-aligned: all ## Build and run the aligned allocation example
+## aligned@Run: build and run the aligned allocation example
+.PHONY: aligned
+aligned: all
 	./$(BUILD)/example_aligned
 
-test: all ## Build and run the unit tests
+## test@Run: build and run the unit tests
+.PHONY: test
+test: all
 	./$(BUILD)/tests
 
-valgrind: all ## Run Valgrind leak check on all executables
-	@printf '$(CYAN)Valgrind HEAP SUMMARY for example:$(NC)\n'
+## valgrind@Check: run Valgrind leak check on all executables
+.PHONY: valgrind
+valgrind: all
+	@printf '$(CYAN)Valgrind HEAP SUMMARY for example:$(RESET)\n'
 	@valgrind -s --leak-check=full ./$(BUILD)/example 2>&1 | grep -A6 "HEAP SUMMARY\|ERROR SUMMARY"
 	@echo
-	@printf '$(CYAN)Valgrind HEAP SUMMARY for example_aligned:$(NC)\n'
+	@printf '$(CYAN)Valgrind HEAP SUMMARY for example_aligned:$(RESET)\n'
 	@valgrind -s --leak-check=full ./$(BUILD)/example_aligned 2>&1 | grep -A6 "HEAP SUMMARY\|ERROR SUMMARY"
 	@echo
-	@printf '$(CYAN)Valgrind HEAP SUMMARY for tests:$(NC)\n'
+	@printf '$(CYAN)Valgrind HEAP SUMMARY for tests:$(RESET)\n'
 	@valgrind -s --leak-check=full ./$(BUILD)/tests 2>&1 | grep -A6 "HEAP SUMMARY\|ERROR SUMMARY"
 
-test-stds: ## Build example_aligned under c99, c11, c17, c23
+## test-stds@Check: build example_aligned under c99, c11, c17, c23
+.PHONY: test-stds
+test-stds:
 	@mkdir -p $(BUILD)
 	@for std in c99 c11 c17 c23; do \
-		printf '$(BOLD)Testing with -std=%s$(NC)\n' "$$std"; \
+		printf '$(BOLD)Testing with -std=%s$(RESET)\n' "$$std"; \
 		stdflag="$$std"; \
 		if [ "$$std" = "c23" ]; then \
 			$(CC) -std=c23 -x c /dev/null -o /dev/null 2>/dev/null || stdflag="c2x"; \
@@ -71,25 +86,23 @@ test-stds: ## Build example_aligned under c99, c11, c17, c23
 			-I./include ./src/example_aligned.c -o $(BUILD)/example_aligned -lm; \
 		if [ $$? -eq 0 ]; then \
 			./$(BUILD)/example_aligned; \
-			printf '$(GREEN)Build and run successful for -std=%s$(NC)\n' "$$std"; \
+			printf '$(GREEN)Build and run successful for -std=%s$(RESET)\n' "$$std"; \
 		else \
 			if [ "$$std" = "c99" ]; then \
-				printf '\n$(YELLOW)WARNING: Build failed for -std=c99 (expected behavior)$(NC)\n'; \
-				printf '$(YELLOW)Nothing to worry about -- _Alignas/_Alignof are C11+ features.$(NC)\n\n'; \
+				printf '\n$(YELLOW)WARNING: Build failed for -std=c99 (expected behavior)$(RESET)\n'; \
+				printf '$(YELLOW)Nothing to worry about -- _Alignas/_Alignof are C11+ features.$(RESET)\n\n'; \
 			else \
-				printf '$(RED)ERROR: Build failed for -std=%s$(NC)\n' "$$std"; \
+				printf '$(RED)ERROR: Build failed for -std=%s$(RESET)\n' "$$std"; \
 			fi; \
 		fi; \
 		echo "--------------------------------------------"; \
 		echo; \
 	done
 
-asan: ## Unit tests under AddressSanitizer + UBSan
+## asan@Check: unit tests under AddressSanitizer + UBSan
+.PHONY: asan
+asan:
 	@mkdir -p $(BUILD)
 	$(CC) -std=c11 -g -O1 -Wall -Wextra -Werror -Wpedantic -fsanitize=address,undefined -fno-omit-frame-pointer \
 		-I./include ./tests/test_va_arena.c -o $(BUILD)/tests_asan -lm
 	./$(BUILD)/tests_asan
-
-clean: ## Remove build directory and compile_commands.json
-	rm -rf $(BUILD)
-	rm -f compile_commands.json

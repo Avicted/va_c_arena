@@ -8,7 +8,7 @@ AllowShortLoopsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
 AllowShortBlocksOnASingleLine: Never
 PointerAlignment: Right
-ColumnLimit: 180
+ColumnLimit: 200
 SortIncludes: false
 AlignConsecutiveMacros: true
 SpaceBeforeParens: ControlStatements
