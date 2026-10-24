@@ -8,7 +8,7 @@ RED     := \033[31m
 CYAN    := \033[36m
 NC      := \033[0m
 
-.PHONY: all help example aligned test valgrind test-stds clean
+.PHONY: all help example aligned test valgrind test-stds asan clean
 
 all: $(BUILD)/Makefile
 	cmake --build $(BUILD)
@@ -31,6 +31,7 @@ help: ## Show this help
 	@printf '$(BOLD)Check targets:$(NC)\n'
 	@echo '  valgrind     Run Valgrind leak check on all executables'
 	@echo '  test-stds    Build example_aligned under c99, c11, c17, c23'
+	@echo '  asan         Unit tests under AddressSanitizer + UBSan'
 	@echo
 	@printf '$(BOLD)Utility targets:$(NC)\n'
 	@echo '  clean        Remove build directory and compile_commands.json'
@@ -82,6 +83,12 @@ test-stds: ## Build example_aligned under c99, c11, c17, c23
 		echo "--------------------------------------------"; \
 		echo; \
 	done
+
+asan: ## Unit tests under AddressSanitizer + UBSan
+	@mkdir -p $(BUILD)
+	$(CC) -std=c11 -g -O1 -Wall -Wextra -Werror -Wpedantic -fsanitize=address,undefined -fno-omit-frame-pointer \
+		-I./include ./tests/test_va_arena.c -o $(BUILD)/tests_asan -lm
+	./$(BUILD)/tests_asan
 
 clean: ## Remove build directory and compile_commands.json
 	rm -rf $(BUILD)

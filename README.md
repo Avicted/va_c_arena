@@ -13,7 +13,12 @@ va_c_arena is a C99/C11 arena memory management library designed to provide effi
 - **Arena Memory Management**: Efficiently allocate and manage memory in blocks.
 - **Single-Header (stb-style)**: Just include one header `include/va_arena.h` and add `#define VA_ARENA_IMPLEMENTATION` in one source file.
 - **Cross-Platform**: Works on various operating systems without modification.
-- **Portable:** Uses only standard C (`malloc`, `realloc`, `free`); no platform-specific APIs like `mmap` or `VirtualAlloc`.
+- **Portable:** `arena_create` uses only standard C (`malloc`, `realloc`, `free`). Reserved arenas use `mmap` (POSIX) or `VirtualAlloc` (Windows); define `VA_ARENA_NO_VM` to compile them out.
+- **Reserved arenas (0.4):** `arena_create_reserve` reserves address space and commits pages on demand. Memory never moves, so pointers stay valid while the arena grows.
+- **Temp scopes (0.4):** `arena_temp_begin` / `arena_temp_end` (and `arena_pos` / `arena_pop_to`) free everything allocated since a saved position.
+- **In-place growth (0.4):** `arena_realloc` grows the most recent allocation in place, so string builders and dynamic arrays don't copy.
+- **Helpers (0.4):** `arena_alloc_zero`, the overflow-checked `VA_PUSH_ARRAY` / `VA_PUSH_ARRAY_ZERO` / `VA_PUSH_STRUCT`, and `arena_strdup`, `arena_strndup`, `arena_printf`.
+- **AddressSanitizer aware (0.4):** under ASan, unused and popped arena memory is poisoned.
 - **Easy to Use API**: Simple functions for memory management that are easy to integrate into your projects.
 - **Unit Tested**: Includes tests for all API functions.
 - **Aligned Allocations**: Supports aligned allocations for types with strict alignment requirements (C11 or newer required).
@@ -53,6 +58,30 @@ int main(void) {
     return 0;
 }
 ```
+
+## Reserved arenas and temp scopes (0.4)
+
+```c
+#define VA_ARENA_IMPLEMENTATION
+#include "va_arena.h"   // first include of the implementation file (see below)
+
+int main(void) {
+    // 64 GiB of address space; only the pages actually used are committed
+    Arena *perm = arena_create_reserve((size_t)64 << 30, 0);
+
+    char *name = arena_printf(perm, "%s-%d", "hook", 42);   // lives as long as perm
+
+    ArenaTemp t = arena_temp_begin(perm);
+    int *scratch = VA_PUSH_ARRAY(perm, int, 1000000);        // overflow-checked count * size
+    // ... use scratch ...
+    arena_temp_end(t);                                       // scratch is gone, name is kept
+
+    arena_destroy(&perm);
+    return name != NULL ? 0 : 1;
+}
+```
+
+Under strict `-std=c99`/`-std=c11`, include `va_arena.h` first in the implementation file so it can expose `MAP_ANONYMOUS`; otherwise it falls back to mapping `/dev/zero`.
 
 ## Alignment and Thread Safety
 
@@ -103,6 +132,7 @@ make test       # Run the unit tests
 ```sh
 make valgrind   # Valgrind leak check on all executables
 make test-stds  # Build example_aligned under c99, c11, c17, c23
+make asan       # Unit tests under AddressSanitizer + UBSan (also checks the poisoning)
 ```
 
 ### Other
